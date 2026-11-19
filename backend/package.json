@@ -7,7 +7,8 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "db:generate": "prisma generate --schema ../prisma/schema.prisma",
-    "db:migrate": "dotenv -e ../.env -- prisma migrate deploy --schema ../prisma/schema.prisma"
+    "db:migrate": "dotenv -e ../.env -- prisma migrate deploy --schema ../prisma/schema.prisma",
+    "db:seed:test-user": "node scripts/seed-test-user.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",
