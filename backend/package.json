@@ -1,0 +1,21 @@
+{
+  "name": "fixtech-backend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "db:generate": "prisma generate --schema ../prisma/schema.prisma",
+    "db:migrate": "dotenv -e ../.env -- prisma migrate deploy --schema ../prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "dotenv-cli": "latest",
+    "prisma": "^6.19.0"
+  }
+}
