@@ -1,0 +1,11 @@
+const express = require('express');
+const c = require('../controllers/operational.controller');
+const asyncHandler = require('../utils/async-handler');
+const router = express.Router();
+router.get('/devices', asyncHandler(c.listDevices)); router.post('/devices', asyncHandler(c.createDevice));
+router.get('/orders', asyncHandler(c.listOrders)); router.post('/orders', asyncHandler(c.createOrder)); router.get('/orders/:id', asyncHandler(c.getOrder)); router.patch('/orders/:id', asyncHandler(c.updateOrder)); router.post('/orders/:id/status', asyncHandler(c.status)); router.post('/orders/:id/parts', asyncHandler(c.addPart)); router.post('/orders/:id/services', asyncHandler(c.addService));
+router.get('/parts', asyncHandler(c.listParts)); router.post('/parts', asyncHandler(c.createPart)); router.patch('/parts/:id', asyncHandler(c.updatePart)); router.delete('/parts/:id', asyncHandler(c.deletePart)); router.post('/parts/:id/movements', asyncHandler(c.movement));
+router.get('/services', asyncHandler(c.listServices)); router.post('/services', asyncHandler(c.createService)); router.patch('/services/:id', asyncHandler(c.updateService)); router.delete('/services/:id', asyncHandler(c.deleteService));
+router.get('/payments', asyncHandler(c.listPayments)); router.post('/payments', asyncHandler(c.createPayment));
+router.get('/dashboard', asyncHandler(c.dashboard)); router.get('/profile', asyncHandler(c.profile)); router.patch('/profile', asyncHandler(c.updateProfile));
+module.exports = router;

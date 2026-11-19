@@ -1,0 +1,9 @@
+const service = require('../services/operational.service');
+const send = (fn, status = 200) => async (req, res) => res.status(status).json({ data: await fn(req) });
+module.exports = {
+  listDevices: send(req => service.listDevices(req.query.clientId)), createDevice: send(req => service.createDevice(req.body), 201),
+  listOrders: send(req => service.listOrders(req.query)), getOrder: send(req => service.getOrder(req.params.id)), createOrder: send(req => service.createOrder(req.body), 201), updateOrder: send(req => service.updateOrder(req.params.id, req.body)), status: send(req => service.setOrderStatus(req.params.id, req.body)), addPart: send(req => service.addOrderPart(req.params.id, req.body)), addService: send(req => service.addOrderService(req.params.id, req.body)),
+  listParts: send(req => service.listParts(req.query)), createPart: send(req => service.createPart(req.body), 201), updatePart: send(req => service.updatePart(req.params.id, req.body)), deletePart: async (req, res) => { await service.deletePart(req.params.id); res.status(204).send(); }, movement: send(req => service.moveStock(req.params.id, req.body)),
+  listServices: send(() => service.listServices()), createService: send(req => service.saveService(null, req.body), 201), updateService: send(req => service.saveService(req.params.id, req.body)), deleteService: async (req, res) => { await service.deleteService(req.params.id); res.status(204).send(); },
+  listPayments: send(req => service.listPayments(req.query)), createPayment: send(req => service.createPayment(req.body), 201), dashboard: send(() => service.dashboard()), profile: send(() => service.profile()), updateProfile: send(req => service.updateProfile(req.body)),
+};

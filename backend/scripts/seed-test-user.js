@@ -3,7 +3,7 @@ const path = require('node:path');
 
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require('../src/generated/prisma');
 
 const prisma = new PrismaClient();
 const email = 'admin.teste@fixtech.local';
