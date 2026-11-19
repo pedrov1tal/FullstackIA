@@ -6,6 +6,7 @@ import ClientsTable from './components/ClientsTable.jsx';
 import ClientModal from './components/ClientModal.jsx';
 import ClientDetailsModal from './components/ClientDetailsModal.jsx';
 import ConfirmDialog from './components/ConfirmDialog.jsx';
+import OperationalPage from './components/OperationalPage.jsx';
 import { clientsApi, getApiErrorMessage } from './services/api.js';
 
 function StatCard({ label, value, note, icon: Icon, tone }) {
@@ -23,6 +24,7 @@ function Toast({ message, type, onClose }) {
 }
 
 export default function App() {
+  const [page, setPage] = useState('clients');
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -96,10 +98,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#f7f8fc] text-slate-800">
-      <Sidebar />
+      <Sidebar page={page} onNavigate={setPage} />
       <div className="min-h-screen lg:pl-[260px]">
         <PageHeader />
         <main className="mx-auto max-w-[1440px] px-4 pb-10 pt-7 sm:px-7 sm:pt-9 lg:px-9">
+          {page !== 'clients' ? <OperationalPage page={page} clients={clients} notify={notify} /> : <>
           <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div><div className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.15em] text-indigo-600"><span className="h-px w-5 bg-indigo-400" />Relacionamento</div><h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-[30px]">Clientes</h1><p className="mt-1.5 max-w-lg text-xs leading-relaxed text-slate-500 sm:text-sm">Gerencie os clientes da sua assistência técnica em um só lugar.</p></div>
             <button onClick={openCreate} className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-xs font-bold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-indigo-700"><Plus size={17} strokeWidth={2.5} />Cadastrar cliente</button>
@@ -113,6 +116,7 @@ export default function App() {
 
           <ClientsTable clients={clients} search={search} onSearchChange={setSearch} onView={setViewingClient} onEdit={openEdit} onDelete={setDeletingClient} loading={loading} />
           <div className="mt-4 flex justify-end"><button onClick={loadClients} disabled={loading} className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-semibold text-slate-400 transition hover:bg-white hover:text-indigo-600 disabled:opacity-50"><RefreshCw size={13} className={loading ? 'animate-spin' : ''} />Atualizar lista</button></div>
+          </>}
         </main>
       </div>
 

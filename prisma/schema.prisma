@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../backend/src/generated/prisma"
 }
 
 datasource db {
@@ -109,7 +110,9 @@ model ServiceOrder {
   createdBy   User        @relation("OrderCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Cascade)
   technician  User?       @relation("OrderTechnician", fields: [technicianId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   parts       OrderPart[]
+  services    OrderService[]
   payments    Payment[]
+  history     ServiceOrderHistory[]
 
   @@index([deviceId])
   @@index([createdById])
@@ -125,12 +128,77 @@ model Part {
   description String?     @db.Text
   stock       Int         @default(0)
   unitCost    Decimal     @map("unit_cost") @db.Decimal(10, 2)
+  minimumStock Int        @default(0) @map("minimum_stock")
   createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   orderParts OrderPart[]
+  movements  StockMovement[]
 
   @@map("parts")
+}
+
+model Service {
+  id             String         @id @default(uuid()) @db.Uuid
+  name           String         @unique @db.VarChar(150)
+  description    String?        @db.Text
+  suggestedPrice Decimal        @default(0) @map("suggested_price") @db.Decimal(10, 2)
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  orderServices OrderService[]
+
+  @@map("services")
+}
+
+model OrderService {
+  serviceOrderId String   @map("service_order_id") @db.Uuid
+  serviceId      String   @map("service_id") @db.Uuid
+  unitPrice      Decimal  @map("unit_price") @db.Decimal(10, 2)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  serviceOrder ServiceOrder @relation(fields: [serviceOrderId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  service      Service      @relation(fields: [serviceId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@id([serviceOrderId, serviceId])
+  @@index([serviceId])
+  @@map("order_services")
+}
+
+enum StockMovementType {
+  ENTRY
+  EXIT
+  ADJUSTMENT
+}
+
+model StockMovement {
+  id             String            @id @default(uuid()) @db.Uuid
+  partId         String            @map("part_id") @db.Uuid
+  serviceOrderId String?           @map("service_order_id") @db.Uuid
+  type           StockMovementType
+  quantity       Int
+  note           String?           @db.VarChar(255)
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  part Part @relation(fields: [partId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([partId])
+  @@index([serviceOrderId])
+  @@map("stock_movements")
+}
+
+model ServiceOrderHistory {
+  id             String             @id @default(uuid()) @db.Uuid
+  serviceOrderId String             @map("service_order_id") @db.Uuid
+  previousStatus ServiceOrderStatus? @map("previous_status")
+  newStatus      ServiceOrderStatus @map("new_status")
+  note           String?            @db.Text
+  createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  serviceOrder ServiceOrder @relation(fields: [serviceOrderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([serviceOrderId])
+  @@map("service_order_history")
 }
 
 model OrderPart {
