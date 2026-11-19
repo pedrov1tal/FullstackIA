@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum UserRole {
+  ADMIN
+  TECHNICIAN
+  ATTENDANT
+}
+
+enum ServiceOrderStatus {
+  RECEIVED
+  IN_DIAGNOSIS
+  WAITING_APPROVAL
+  WAITING_PARTS
+  IN_REPAIR
+  COMPLETED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  PIX
+  CREDIT_CARD
+  DEBIT_CARD
+  BANK_TRANSFER
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  CANCELLED
+}
+
+model User {
+  id             String         @id @default(uuid()) @db.Uuid
+  name           String         @db.VarChar(120)
+  email          String         @unique @db.VarChar(255)
+  passwordHash   String         @map("password_hash") @db.VarChar(255)
+  role           UserRole       @default(ATTENDANT)
+  active         Boolean        @default(true)
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  createdOrders  ServiceOrder[] @relation("OrderCreator")
+  assignedOrders ServiceOrder[] @relation("OrderTechnician")
+
+  @@map("users")
+}
+
+model Client {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @db.VarChar(150)
+  email     String?  @unique @db.VarChar(255)
+  phone     String   @db.VarChar(30)
+  document  String?  @unique @db.VarChar(30)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  devices Device[]
+
+  @@map("clients")
+}
+
+model Device {
+  id        String   @id @default(uuid()) @db.Uuid
+  clientId  String   @map("client_id") @db.Uuid
+  brand     String   @db.VarChar(80)
+  model     String   @db.VarChar(120)
+  imei      String?  @unique @db.VarChar(20)
+  color     String?  @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  client        Client         @relation(fields: [clientId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  serviceOrders ServiceOrder[]
+
+  @@index([clientId])
+  @@map("devices")
+}
+
+model ServiceOrder {
+  id             String             @id @default(uuid()) @db.Uuid
+  orderNumber    Int                @unique @default(autoincrement()) @map("order_number")
+  deviceId       String             @map("device_id") @db.Uuid
+  createdById    String             @map("created_by_id") @db.Uuid
+  technicianId   String?            @map("technician_id") @db.Uuid
+  status         ServiceOrderStatus @default(RECEIVED)
+  reportedIssue  String             @map("reported_issue") @db.Text
+  diagnosis      String?            @db.Text
+  repairNotes    String?            @map("repair_notes") @db.Text
+  laborAmount    Decimal?           @map("labor_amount") @db.Decimal(10, 2)
+  openedAt       DateTime           @default(now()) @map("opened_at") @db.Timestamptz(3)
+  completedAt    DateTime?          @map("completed_at") @db.Timestamptz(3)
+  deliveredAt    DateTime?          @map("delivered_at") @db.Timestamptz(3)
+  createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  device      Device      @relation(fields: [deviceId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdBy   User        @relation("OrderCreator", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  technician  User?       @relation("OrderTechnician", fields: [technicianId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  parts       OrderPart[]
+  payments    Payment[]
+
+  @@index([deviceId])
+  @@index([createdById])
+  @@index([technicianId])
+  @@index([status])
+  @@map("service_orders")
+}
+
+model Part {
+  id          String      @id @default(uuid()) @db.Uuid
+  sku         String      @unique @db.VarChar(60)
+  name        String      @db.VarChar(150)
+  description String?     @db.Text
+  stock       Int         @default(0)
+  unitCost    Decimal     @map("unit_cost") @db.Decimal(10, 2)
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  orderParts OrderPart[]
+
+  @@map("parts")
+}
+
+model OrderPart {
+  serviceOrderId String   @map("service_order_id") @db.Uuid
+  partId         String   @map("part_id") @db.Uuid
+  quantity       Int
+  unitPrice      Decimal  @map("unit_price") @db.Decimal(10, 2)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  serviceOrder ServiceOrder @relation(fields: [serviceOrderId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  part         Part         @relation(fields: [partId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@id([serviceOrderId, partId])
+  @@index([partId])
+  @@map("order_parts")
+}
+
+model Payment {
+  id             String        @id @default(uuid()) @db.Uuid
+  serviceOrderId String        @map("service_order_id") @db.Uuid
+  amount         Decimal       @db.Decimal(10, 2)
+  method         PaymentMethod
+  status         PaymentStatus @default(PENDING)
+  paidAt         DateTime?     @map("paid_at") @db.Timestamptz(3)
+  reference      String?       @db.VarChar(120)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  serviceOrder ServiceOrder @relation(fields: [serviceOrderId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([serviceOrderId])
+  @@index([status])
+  @@map("payments")
+}
