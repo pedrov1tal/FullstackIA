@@ -46,9 +46,9 @@ const unwrap = (request) => request.then(({ data }) => data.data);
 export const operationalApi = {
   dashboard: () => unwrap(api.get('/dashboard')),
   devices: (clientId) => unwrap(api.get('/devices', { params: clientId ? { clientId } : {} })), createDevice: (data) => unwrap(api.post('/devices', data)),
-  orders: (params) => unwrap(api.get('/orders', { params })), order: (id) => unwrap(api.get(`/orders/${id}`)), createOrder: (data) => unwrap(api.post('/orders', data)), updateOrder: (id, data) => unwrap(api.patch(`/orders/${id}`, data)), setStatus: (id, data) => unwrap(api.post(`/orders/${id}/status`, data)), addPart: (id, data) => unwrap(api.post(`/orders/${id}/parts`, data)), addService: (id, data) => unwrap(api.post(`/orders/${id}/services`, data)),
+  orders: (params) => unwrap(api.get('/orders', { params })), order: (id) => unwrap(api.get(`/orders/${id}`)), createOrder: (data) => unwrap(api.post('/orders', data)), updateOrder: (id, data) => unwrap(api.patch(`/orders/${id}`, data)), removeOrder: (id) => api.delete(`/orders/${id}`), setStatus: (id, data) => unwrap(api.post(`/orders/${id}/status`, data)), addPart: (id, data) => unwrap(api.post(`/orders/${id}/parts`, data)), addService: (id, data) => unwrap(api.post(`/orders/${id}/services`, data)),
   parts: (search) => unwrap(api.get('/parts', { params: { search } })), createPart: (data) => unwrap(api.post('/parts', data)), updatePart: (id, data) => unwrap(api.patch(`/parts/${id}`, data)), removePart: (id) => api.delete(`/parts/${id}`), movePart: (id, data) => unwrap(api.post(`/parts/${id}/movements`, data)),
   services: () => unwrap(api.get('/services')), createService: (data) => unwrap(api.post('/services', data)), updateService: (id, data) => unwrap(api.patch(`/services/${id}`, data)), removeService: (id) => api.delete(`/services/${id}`),
-  payments: (pending) => unwrap(api.get('/payments', { params: pending ? { pending: 'true' } : {} })), createPayment: (data) => unwrap(api.post('/payments', data)),
+  payments: (pending) => unwrap(api.get('/payments', { params: pending ? { pending: 'true' } : {} })), createPayment: (data) => unwrap(api.post('/payments', data)), removePayment: (id) => api.delete(`/payments/${id}`),
   profile: () => unwrap(api.get('/profile')), updateProfile: (data) => unwrap(api.patch('/profile', data)),
 };
